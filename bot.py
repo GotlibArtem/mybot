@@ -1,7 +1,6 @@
 import logging
 import settings
-from telegram import Update
-from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
 # Enable logging
 logging.basicConfig(
@@ -9,29 +8,32 @@ logging.basicConfig(
     level=logging.INFO
     )
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+def start(update, context) -> None:
     """Processing the start command"""
-    await update.message.reply_text('Привет, пользователь! \nТы вызвал команду /start.')
+    print('Вызван /start')
+    update.message.reply_text('Привет, пользователь! \nТы вызвал команду /start.')
 
-async def talk_to_me(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+def talk_to_me(update, context) -> None:
     """Repeating user messages"""
     user_text = update.message.text 
     print(user_text)
-    await update.message.reply_text(user_text)
+    update.message.reply_text(user_text)
 
 def main() -> None:
     """Start the bot"""
-    bot = Application.builder().token(settings.API_KEY).build()
+    bot = Updater(settings.API_KEY, use_context=True)
 
     # Different commands
-    bot.add_handler(CommandHandler('start', start))
-    bot.add_handler(MessageHandler(filters.TEXT, talk_to_me))
+    dp = bot.dispatcher
+    dp.add_handler(CommandHandler('start', start))
+    dp.add_handler(MessageHandler(Filters.text, talk_to_me))
 
     # Logs
     logging.info("Бот стартовал.")
 
     # Run the bot
-    bot.run_polling()
+    bot.start_polling()
+    bot.idle()
 
 if __name__ == "__main__":
     main()
